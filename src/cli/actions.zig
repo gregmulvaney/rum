@@ -1,10 +1,12 @@
 const std = @import("std");
 const help = @import("help.zig");
 const version = @import("version.zig");
+const info = @import("info.zig");
 const Allocator = std.mem.Allocator;
 
 pub const Action = enum {
     version,
+    info,
 
     pub fn parseArgs(alloc: Allocator) !?Action {
         var args = try std.process.argsWithAllocator(alloc);
@@ -20,6 +22,7 @@ pub const Action = enum {
     pub fn run(self: Action, alloc: Allocator) !u8 {
         return switch (self) {
             .version => try version.run(alloc),
+            .info => try info.run(alloc),
         };
     }
 };

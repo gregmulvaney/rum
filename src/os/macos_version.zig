@@ -9,7 +9,7 @@ pub const MacosVersion = struct {
     semver: std.SemanticVersion,
 };
 
-pub fn queryOsVersion(alloc: Allocator) !MacosVersion {
+pub fn queryVersion(alloc: Allocator) !MacosVersion {
     const args = [2][]const u8{
         "sw_vers",
         "-productVersion",

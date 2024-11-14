@@ -3,6 +3,12 @@ const std = @import("std");
 pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
     const target = b.standardTargetOptions(.{});
+    const options = b.addOptions();
+
+    const semver = std.SemanticVersion{ .major = 0, .minor = 0, .patch = 1 };
+    const version = std.fmt.comptimePrint("{d}.{d}.{d}", .{ semver.major, semver.minor, semver.patch });
+
+    options.addOption([]const u8, "version", version);
 
     const exe = b.addExecutable(.{
         .name = "rum",
@@ -10,6 +16,9 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+
+    exe.root_module.addOptions("config", options);
+
     b.installArtifact(exe);
     const run_cmd = b.addRunArtifact(exe);
 

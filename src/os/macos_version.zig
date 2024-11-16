@@ -2,6 +2,7 @@ const std = @import("std");
 const builtin = @import("builtin");
 const Allocator = std.mem.Allocator;
 const assert = std.debug.assert;
+const testing = std.testing;
 
 pub const MacosVersion = struct {
     name: []const u8,
@@ -39,4 +40,31 @@ pub fn queryVersion(alloc: Allocator) !MacosVersion {
         .semver = semver,
         .name = name,
     };
+}
+
+test "queryVersion returns correct MacOS version information" {
+    // Setup
+    var arena = std.heap.ArenaAllocator.init(testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    // Execute
+    const version = try queryVersion(allocator);
+
+    // Verify
+    try testing.expect(version.string.len > 0);
+    try testing.expect(version.semver.major >= 12);
+
+    // Test version name mapping
+    switch (version.semver.major) {
+        15 => try testing.expectEqualStrings("Sequoia", version.name),
+        14 => try testing.expectEqualStrings("Sonoma", version.name),
+        13 => try testing.expectEqualStrings("Ventura", version.name),
+        12 => try testing.expectEqualStrings("Monterey", version.name),
+        else => try testing.expectEqualStrings("Error", version.name),
+    }
+
+    // Test semver format
+    try testing.expect(version.semver.minor >= 0);
+    try testing.expect(version.semver.patch >= 0);
 }

@@ -1,5 +1,6 @@
 const std = @import("std");
 const cli = @import("cli.zig");
+const db = @import("db/db.zig");
 
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
@@ -9,4 +10,5 @@ pub fn main() !void {
     if (action) |arg| {
         _ = try arg.run(alloc);
     }
+    _ = try db.Database.init(alloc);
 }

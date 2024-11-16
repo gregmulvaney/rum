@@ -1,3 +1,3 @@
 clean:
-	rm -rf zig-out zig-cache
+	rm -rf zig-out .zig-cache
 .PHONY: clean

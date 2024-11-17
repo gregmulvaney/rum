@@ -1,0 +1,7 @@
+# Editor junk
+.idea
+.vscode 
+
+# Zig outputs
+zig-out
+.zig-cache

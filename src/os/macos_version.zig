@@ -12,7 +12,6 @@ pub const MacosVersion = struct {
         CommandFailed,
     };
 
-    // FIX: add error handling
     pub fn query(alloc: Allocator) !MacosVersion {
         // Use the sw_vers system utility to query the system version number
         const args = [2][]const u8{
@@ -24,20 +23,23 @@ pub const MacosVersion = struct {
             .allocator = alloc,
             .argv = &args,
         });
+        defer {
+            alloc.free(result.stdout);
+            alloc.free(result.stderr);
+        }
 
         // Strip newline from command output
-        const version_string = std.mem.trim(u8, result.stdout, &std.ascii.whitespace);
-
+        const version_string = try alloc.dupe(u8, std.mem.trim(u8, result.stdout, &std.ascii.whitespace));
         const semver = try std.SemanticVersion.parse(version_string);
 
-        var name: []const u8 = undefined;
-        switch (semver.major) {
-            15 => name = "Sequoia",
-            14 => name = "Sonoma",
-            13 => name = "Ventura",
-            12 => name = "Monterey",
-            else => name = "Error",
-        }
+        // TODO: handle error for unknown versions
+        const name: []const u8 = switch (semver.major) {
+            15 => "Sequoia",
+            14 => "Sonoma",
+            13 => "Ventura",
+            12 => "Monterey",
+            else => "Error",
+        };
 
         return MacosVersion{
             .name = name,

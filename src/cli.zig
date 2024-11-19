@@ -1,1 +1,1 @@
-pub const Action = @import("cli/action.zig").Action;
+pub const Command = @import("cli/command.zig").Command;

@@ -7,7 +7,6 @@ pub fn run(options: ?std.ArrayList([]const u8), alloc: Allocator) !void {
     for (options.?.items) |item| {
         std.debug.print("Option {s}\n", .{item});
     }
-    defer options.?.deinit();
     const stdout = std.io.getStdOut().writer();
     const version_string = std.fmt.comptimePrint("Rum v{s}\n", .{config.version});
     _ = try stdout.writeAll(version_string);

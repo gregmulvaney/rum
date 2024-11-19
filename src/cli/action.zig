@@ -53,7 +53,7 @@ pub const Action = enum {
     pub fn run(self: Action, options: ?std.ArrayList([]const u8), alloc: Allocator) !void {
         return switch (self) {
             .version => try version.run(options, alloc),
-            .system => try system.run(alloc),
+            .system => try system.run(options, alloc),
         };
     }
 };

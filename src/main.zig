@@ -10,6 +10,7 @@ pub fn main() !void {
     }
     const action = try cli.Action.parseArgs(alloc);
     if (action) |command| {
+        defer command.options.?.deinit();
         _ = try command.action.run(command.options.?, alloc);
     }
 }

@@ -7,6 +7,7 @@ pub fn run(options: std.ArrayList([]const u8), alloc: Allocator) !void {
     _ = options;
     const stdout = std.io.getStdOut().writer();
     const macos = try macos_version.MacosVersion.query(alloc);
+    defer alloc.free(macos.string);
 
     const info = try std.fmt.allocPrint(alloc, "Rum: v{s}\nmacOS: {s} {s}\n", .{ config.version, macos.name, macos.string });
     defer alloc.free(info);

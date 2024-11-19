@@ -8,9 +8,8 @@ pub fn main() !void {
         const deinit_status = gpa.deinit();
         if (deinit_status == .leak) @panic("Memory leak detected!");
     }
-    const action = try cli.Action.parseArgs(alloc);
-    if (action) |command| {
-        defer command.options.?.deinit();
-        _ = try command.action.run(command.options.?, alloc);
+    const command = try cli.Command.parseArgs(alloc);
+    if (command) |com| {
+        _ = try com.action.run(command.?.options, alloc);
     }
 }

@@ -1,20 +1,16 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
+const ArrayList = std.ArrayList;
 const version = @import("version.zig");
 const system = @import("system.zig");
-const ArgIterator = std.process.ArgIterator;
 
 pub const Command = struct {
     action: Action,
-    options: ?std.ArrayList([]const u8),
-};
-
-pub const Action = enum {
-    version,
-    system,
+    options: ArrayList([]const u8),
 
     pub const Error = error{
         InvalidCommand,
+        InvalidAction,
         OutOfMemory,
     };
 
@@ -24,36 +20,44 @@ pub const Action = enum {
         return try iterArgs(&args, alloc);
     }
 
-    pub fn iterArgs(args: anytype, alloc: Allocator) Error!?Command {
+    pub fn iterArgs(args: *std.process.ArgIterator, alloc: Allocator) Error!?Command {
         var command: Command = undefined;
 
-        var options = std.ArrayList([]const u8).init(alloc);
+        // Create an arraylist for action options
+        var options = ArrayList([]const u8).init(alloc);
+
+        // Skip program namex
+        _ = args.skip();
 
         var i: usize = 0;
         while (args.next()) |arg| : (i += 1) {
-            // Skip first arg
+            // Parse first arg as an action
             if (i == 0) {
+                command.action = try Action.parseAction(arg) orelse return Error.InvalidAction;
                 continue;
             }
-            // If arg is empty continue
-            if (arg.len == 0) continue;
-            // Parse first argument as an action
-            if (i == 1) {
-                command.action = std.meta.stringToEnum(Action, arg[0..]) orelse return Error.InvalidCommand;
-                continue;
-            }
-            // Parse any remaining args as options for the action
+
+            // Parse any remaining arguments as options
             try options.append(arg);
         }
-
         command.options = options;
         return command;
     }
+};
 
-    pub fn run(self: Action, options: ?std.ArrayList([]const u8), alloc: Allocator) !void {
-        return switch (self) {
+pub const Action = enum {
+    version,
+    system,
+
+    pub fn parseAction(action: []const u8) !?Action {
+        return std.meta.stringToEnum(Action, action[0..]);
+    }
+
+    pub fn run(self: Action, options: ArrayList([]const u8), alloc: Allocator) !void {
+        defer options.deinit();
+        switch (self) {
             .version => try version.run(options, alloc),
             .system => try system.run(options, alloc),
-        };
+        }
     }
 };

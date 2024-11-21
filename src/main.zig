@@ -10,7 +10,7 @@ pub fn main() !void {
         if (deinit_status == .leak) @panic("Memory leak detected!");
     }
 
-    try config.dir.checkDirs();
+    try config.dir.checkDirs(alloc);
 
     const command = try cli.Command.parseArgs(alloc);
     if (command) |com| {

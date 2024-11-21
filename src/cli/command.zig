@@ -1,16 +1,14 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const ArrayList = std.ArrayList;
+const ArgIterator = std.process.ArgIterator;
 const version = @import("version.zig");
 const system = @import("system.zig");
-const help = @import("help.zig");
 
 pub const Command = struct {
-    action: Action,
-    options: ArrayList([]const u8),
+    action: ?Action,
+    options: ?std.ArrayList([]const u8),
 
-    pub const Error = error{
-        InvalidCommand,
+    const Error = error{
         InvalidAction,
         OutOfMemory,
     };
@@ -21,55 +19,50 @@ pub const Command = struct {
         return try iterArgs(&args, alloc);
     }
 
-    pub fn iterArgs(args: *std.process.ArgIterator, alloc: Allocator) Error!?Command {
-        var command: Command = undefined;
-
-        // Create an arraylist for action options
-        var options = ArrayList([]const u8).init(alloc);
-
-        // Skip program name
+    pub fn iterArgs(args: *ArgIterator, alloc: Allocator) Error!?Command {
+        // Skip first argument of program name
         _ = args.skip();
 
+        var action: ?Action = null;
+        var options = std.ArrayList([]const u8).init(alloc);
+
+        // Argument index
         var i: usize = 0;
         while (args.next()) |arg| : (i += 1) {
-            if (arg.len == 0) {
-                return null;
-            }
+            if (arg.len == 0) continue;
 
-            // Parse first arg as an action
+            // Parse first arg as action
             if (i == 0) {
-                command.action = try Action.parseAction(arg) orelse return Error.InvalidAction;
+                action = try Action.parseAction(arg) orelse return Error.InvalidAction;
                 continue;
             }
 
-            // Parse any remaining arguments as options
+            // Parse any remaining args as options
             try options.append(arg);
         }
-        command.options = options;
-        return command;
+
+        if (action != null) return Command{ .action = action, .options = options };
+
+        return null;
     }
 };
 
 pub const Action = enum {
     version,
-    system,
-    help,
 
     const Error = error{
         InvalidAction,
     };
 
-    pub fn parseAction(action_string: []const u8) Error!?Action {
-        const action = std.meta.stringToEnum(Action, action_string[0..]) orelse return Error.InvalidAction;
+    pub fn parseAction(arg: []const u8) Error!?Action {
+        const action = std.meta.stringToEnum(Action, arg[0..]) orelse return Error.InvalidAction;
         return action;
     }
 
-    pub fn run(self: Action, options: ArrayList([]const u8), alloc: Allocator) !void {
-        defer options.deinit();
+    pub fn run(self: Action, options: ?std.ArrayList([]const u8), alloc: Allocator) !void {
+        defer (options.?.deinit());
         switch (self) {
-            .help => try help.run(),
-            .version => try version.run(options, alloc),
-            .system => try system.run(options, alloc),
+            .version => try version.run(alloc),
         }
     }
 };

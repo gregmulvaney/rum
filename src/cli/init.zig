@@ -1,8 +1,8 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 
-const DATA_DIR_PATH: []const u8 = "/opt/rum";
-const CACHE_DIR_PATH: []const u8 = "/Library/Caches/Rum";
+pub const DATA_DIR_PATH: []const u8 = "/opt/rum";
+pub const CACHE_DIR_PATH: []const u8 = "/Library/Caches/Rum";
 
 const Error = error{EnvError};
 

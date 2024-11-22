@@ -2,7 +2,7 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArgIterator = std.process.ArgIterator;
 const version = @import("version.zig");
-const system = @import("system.zig");
+const info = @import("info.zig");
 
 pub const Command = struct {
     action: ?Action,
@@ -49,6 +49,7 @@ pub const Command = struct {
 
 pub const Action = enum {
     version,
+    info,
 
     const Error = error{
         InvalidAction,
@@ -63,6 +64,7 @@ pub const Action = enum {
         defer (options.?.deinit());
         switch (self) {
             .version => try version.run(alloc),
+            .info => try info.run(alloc),
         }
     }
 };

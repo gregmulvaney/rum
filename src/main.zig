@@ -1,6 +1,6 @@
 const std = @import("std");
 const cli = @import("cli.zig");
-const config = @import("config.zig");
+// const config = @import("config.zig");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -10,10 +10,8 @@ pub fn main() !void {
         if (deinit_status == .leak) @panic("Memory leak detected!");
     }
 
-    try config.dir.checkDirs(alloc);
-
     const command = try cli.Command.parseArgs(alloc);
     if (command) |com| {
-        _ = try com.action.run(command.?.options, alloc);
+        try com.action.?.run(com.options, alloc);
     }
 }

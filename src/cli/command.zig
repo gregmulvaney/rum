@@ -3,15 +3,11 @@ const Allocator = std.mem.Allocator;
 const ArgIterator = std.process.ArgIterator;
 const version = @import("version.zig");
 const info = @import("info.zig");
+const init = @import("init.zig");
 
 pub const Command = struct {
     action: ?Action,
     options: ?std.ArrayList([]const u8),
-
-    const Error = error{
-        InvalidAction,
-        OutOfMemory,
-    };
 
     pub fn parseArgs(alloc: Allocator) !?Command {
         var args = try std.process.argsWithAllocator(alloc);
@@ -19,7 +15,7 @@ pub const Command = struct {
         return try iterArgs(&args, alloc);
     }
 
-    pub fn iterArgs(args: *ArgIterator, alloc: Allocator) Error!?Command {
+    pub fn iterArgs(args: *ArgIterator, alloc: Allocator) !?Command {
         // Skip first argument of program name
         _ = args.skip();
 
@@ -33,7 +29,11 @@ pub const Command = struct {
 
             // Parse first arg as action
             if (i == 0) {
-                action = try Action.parseAction(arg) orelse return Error.InvalidAction;
+                action = Action.parseAction(arg) catch {
+                    // TODO: change to stdout
+                    std.debug.print("Error: Unknown command\n", .{});
+                    return null;
+                };
                 continue;
             }
 
@@ -50,6 +50,7 @@ pub const Command = struct {
 pub const Action = enum {
     version,
     info,
+    init,
 
     const Error = error{
         InvalidAction,
@@ -65,6 +66,7 @@ pub const Action = enum {
         switch (self) {
             .version => try version.run(alloc),
             .info => try info.run(alloc),
+            .init => try init.run(alloc),
         }
     }
 };

@@ -1,6 +1,7 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const config = @import("../config.zig");
+const util = @import("../util.zig");
 
 const FORMULA_JSON_URL = "https://formulae.brew.sh/api/formula.jws.json";
 
@@ -14,7 +15,11 @@ pub fn fetch(alloc: Allocator) !void {
     defer alloc.free(home_path);
 
     var buf: [100]u8 = undefined;
-    const path = try std.fmt.bufPrint(&buf, "{s}/{s}/api/formula.jws.json", .{ home_path, config.CACHE_DIR_PATH });
+    const api_path = try std.fmt.bufPrint(&buf, "{s}/{s}/api", .{ home_path, config.CACHE_DIR_PATH });
+    if (!try util.directoryExists(api_path)) {
+        try std.fs.cwd().makeDir(api_path);
+    }
+    const path = try std.fmt.bufPrint(&buf, "{s}/formula.jws.json", .{api_path});
     try stdout.writeAll(path);
 
     const file = try std.fs.cwd().createFile(path, .{});
